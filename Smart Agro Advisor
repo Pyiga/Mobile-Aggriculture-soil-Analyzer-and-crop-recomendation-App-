@@ -1,0 +1,99 @@
+from tkinter import *
+from tkinter import filedialog
+import cv2
+import requests
+from io import BytesIO
+import numpy as np
+
+# Function to call OpenWeatherMap API for climate data
+def get_climate_data(api_key, lat, lon):
+    url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}"
+    response = requests.get(url)
+    data = response.json()
+
+    climate_data = {
+        'Temperature': data['main']['temp'],
+        'Humidity': data['main']['humidity'],
+        'Weather': data['weather'][0]['description']
+    }
+
+    return climate_data
+
+# Function to call AgroDataCube API for agriculture data
+def get_agriculture_data(api_key, lat, lon):
+    url = f"https://api.agrodatacube.wur.nl/api/v1/rest/fields?lat={lat}&lon={lon}&key={api_key}"
+    response = requests.get(url)
+    data = response.json()
+
+    agriculture_data = {
+        'Crop Types': [crop['crop'] for crop in data['features'][0]['properties']['crops']]
+        # Add more relevant agriculture information
+    }
+
+    return agriculture_data
+
+# Function to process the soil image using a CNN (placeholder)
+def process_soil_image(image_path):
+    # Placeholder implementation for image processing using OpenCV
+    img = cv2.imread(image_path)
+    # Add your image processing and machine learning code here
+    # For a more accurate soil analysis, consider using a pre-trained CNN model
+
+    # Dummy result for demonstration
+    result = {
+        'Soil Type': 'Clay',
+        'Soil Fertility': 'High',
+        'Soil Moisture': 'Optimal',
+        'Climate': 'Temperate',
+        'Crop Suitability': ['Wheat', 'Corn', 'Barley'],
+        'Advice': 'Use organic manure, irrigate every 5 days.',
+        'Market Value': {'Wheat': '$500/ton', 'Corn': '$400/ton', 'Barley': '$450/ton'}
+    }
+    
+    display_result(result)
+
+# Function to display the result in a Tkinter window
+def display_result(result):
+    result_window = Tk()
+    result_window.title("Soil Analysis Result")
+
+    for key, value in result.items():
+        label = Label(result_window, text=f"{key}: {value}")
+        label.pack()
+
+    result_window.mainloop()
+
+# Function to handle image selection
+def select_image():
+    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
+    if file_path:
+        process_soil_image(file_path)
+
+# Create a simple Tkinter GUI
+app = Tk()
+app.title("Farmers' Soil Analysis App")
+
+# Create buttons and labels
+upload_button = Button(app, text="Upload Soil Image", command=select_image)
+upload_button.pack(pady=20)
+
+info_label = Label(app, text="Instructions: Upload an image of the soil for analysis.")
+info_label.pack()
+
+# Set your OpenWeatherMap API key and coordinates (for demo purposes)
+openweathermap_api_key = 'YOUR_OPENWEATHERMAP_API_KEY'
+latitude = 37.7749
+longitude = -122.4194
+
+# Set your AgroDataCube API key and coordinates (for demo purposes)
+agrodatacube_api_key = 'YOUR_AGRODATACUBE_API_KEY'
+
+# Display climate and agriculture data when the app starts (demo)
+climate_data = get_climate_data(openweathermap_api_key, latitude, longitude)
+agriculture_data = get_agriculture_data(agrodatacube_api_key, latitude, longitude)
+
+print("Climate Data:", climate_data)
+print("Agriculture Data:", agriculture_data)
+
+# Start the Tkinter event loop
+app.mainloop()
